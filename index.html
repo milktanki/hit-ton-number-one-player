@@ -1,0 +1,824 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>선생님 어디 계세요?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<style>
+  :root {
+    --bg: #f3f5fa; --card: #ffffff; --field: #f3f5fa; --text: #1b2333; --muted: #5b6577; --line: #dbe0ea;
+    --brand: #2f55d4; --brand-soft: #e5ebff; --teacher: #7546d3; --teacher-soft: #eee7ff;
+    --admin: #1f6f78; --admin-soft: #dff1f2;
+    --in: #138a4c; --in-soft: #e1f5ea; --out: #c93a3a; --out-soft: #fde5e5;
+    --wait: #a86300; --wait-soft: #fff1d9; --on-color: #ffffff;
+    --shadow: 0 4px 16px rgba(20, 30, 60, .08);
+    --font: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #11141b; --card: #1b2029; --field: #11141b; --text: #eef1f7; --muted: #a3acbd; --line: #2d3442;
+      --brand: #7f9cff; --brand-soft: #24304f; --teacher: #b596ff; --teacher-soft: #2f2648;
+      --admin: #5cc7d1; --admin-soft: #183a3e;
+      --in: #4ccf8a; --in-soft: #1c3a2a; --out: #ff7d7d; --out-soft: #45232a;
+      --wait: #ffbe5c; --wait-soft: #3d311b; --on-color: #10131a;
+      --shadow: 0 4px 16px rgba(0,0,0,.35); color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+      --bg: #11141b; --card: #1b2029; --field: #11141b; --text: #eef1f7; --muted: #a3acbd; --line: #2d3442;
+      --brand: #7f9cff; --brand-soft: #24304f; --teacher: #b596ff; --teacher-soft: #2f2648;
+      --admin: #5cc7d1; --admin-soft: #183a3e;
+      --in: #4ccf8a; --in-soft: #1c3a2a; --out: #ff7d7d; --out-soft: #45232a;
+      --wait: #ffbe5c; --wait-soft: #3d311b; --on-color: #10131a;
+      --shadow: 0 4px 16px rgba(0,0,0,.35); color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font); font-size: 20px; line-height: 1.5; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  button:disabled { opacity: .55; cursor: default; }
+  :focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; }
+  .wrap {
+    max-width: 880px; margin: 0 auto; padding-block: 20px 60px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .screen { display: none; }
+  .screen.active { display: block; }
+  h1, h2, h3, .name, .meta, .sub, .hint, p { word-break: keep-all; }
+  .stack, .gap { display: grid; gap: 16px; }
+
+  .topbar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .back { min-height: 56px; padding: 0 18px; border-radius: 14px; border: 2px solid var(--line); background: var(--card); font-size: 19px; font-weight: 700; }
+  .role-tag { margin-left: auto; padding: 8px 14px; border-radius: 999px; font-size: 17px; font-weight: 800; }
+  .role-tag.student { background: var(--brand-soft); color: var(--brand); }
+  .role-tag.teacher { background: var(--teacher-soft); color: var(--teacher); }
+  .role-tag.admin { background: var(--admin-soft); color: var(--admin); }
+
+  .home { text-align: center; padding-top: 24px; }
+  .logo { font-size: 64px; line-height: 1; }
+  h1 { font-size: 40px; margin: 12px 0 6px; letter-spacing: -1px; }
+  .sub { font-size: 21px; color: var(--muted); margin: 0; }
+  .mode-note { display: inline-block; margin-top: 12px; padding: 6px 14px; border-radius: 999px; background: var(--wait-soft); color: var(--wait); font-size: 16px; font-weight: 700; }
+  .ask { font-size: 24px; font-weight: 800; margin: 32px 0 16px; }
+  .roles { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .role-btn { border: 3px solid transparent; border-radius: 24px; padding: 28px 16px; min-height: 200px; background: var(--card); box-shadow: var(--shadow); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; }
+  .role-btn .icon { font-size: 60px; line-height: 1; }
+  .role-btn b { font-size: 30px; }
+  .role-btn span { font-size: 18px; color: var(--muted); }
+  .role-btn.student b { color: var(--brand); }
+  .role-btn.teacher b { color: var(--teacher); }
+  .role-btn.student:hover { border-color: var(--brand); }
+  .role-btn.teacher:hover { border-color: var(--teacher); }
+  .admin-link { margin-top: 28px; min-height: 52px; padding: 0 20px; border-radius: 14px; border: 2px dashed var(--line); background: transparent; color: var(--muted); font-size: 17px; font-weight: 700; }
+
+  .panel { background: var(--card); border-radius: 22px; padding: 22px 18px; box-shadow: var(--shadow); }
+  .panel h2 { font-size: 27px; margin: 0 0 4px; }
+  .panel h3 { font-size: 22px; margin: 0 0 10px; }
+  .hint { color: var(--muted); font-size: 18px; margin: 0 0 16px; }
+  .field-label { display: block; font-size: 17px; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
+  .input, .select { width: 100%; font-size: 21px; padding: 14px 16px; min-height: 60px; border-radius: 14px; border: 2px solid var(--line); background: var(--field); color: var(--text); }
+  .input:focus, .select:focus { border-color: var(--brand); outline: none; }
+  textarea.input { min-height: 180px; resize: vertical; line-height: 1.6; }
+
+  .btn { min-height: 60px; padding: 0 22px; border-radius: 16px; border: 2px solid var(--line); background: var(--card); font-size: 20px; font-weight: 800; }
+  .btn.primary { background: var(--teacher); border-color: var(--teacher); color: var(--on-color); }
+  .btn.admin { background: var(--admin); border-color: var(--admin); color: var(--on-color); }
+  .btn.danger { border-color: var(--out); color: var(--out); }
+  .btn.danger.solid { background: var(--out); color: var(--on-color); }
+  .btn.ghost { border-style: dashed; color: var(--muted); }
+  .btn.full { width: 100%; }
+  .btn-row { display: flex; flex-wrap: wrap; gap: 10px; }
+  .btn-row > .btn { flex: 1 1 180px; }
+  .msg { font-size: 18px; font-weight: 700; min-height: 1.5em; margin-top: 10px; }
+  .msg.err { color: var(--out); }
+  .msg.ok { color: var(--in); }
+  .badge { display: inline-block; min-width: 30px; padding: 2px 10px; border-radius: 999px; background: var(--out); color: var(--on-color); font-size: 16px; font-weight: 800; text-align: center; margin-left: 6px; vertical-align: middle; }
+  .s-wait { background: var(--wait-soft); color: var(--wait); }
+  .warn-box { padding: 14px 16px; border-radius: 14px; background: var(--wait-soft); color: var(--wait); font-weight: 700; font-size: 18px; margin-bottom: 14px; }
+
+  .filter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+  .chip { min-height: 56px; padding: 0 22px; font-size: 20px; font-weight: 700; border-radius: 999px; border: 2px solid var(--line); background: var(--card); }
+  .chip[aria-pressed="true"] { background: var(--brand); border-color: var(--brand); color: var(--on-color); }
+  .result-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin: 16px 0 12px; }
+  .summary { font-size: 19px; color: var(--muted); }
+  .summary b { color: var(--in); }
+  .reset { min-height: 48px; padding: 0 16px; border-radius: 12px; border: 2px solid var(--line); background: var(--card); font-size: 17px; font-weight: 700; color: var(--muted); }
+
+  .list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .list.one { grid-template-columns: minmax(0, 1fr); }
+  .row { display: flex; align-items: center; gap: 14px; padding: 16px; min-height: 92px; border-radius: 18px; background: var(--field); border: 2px solid var(--line); text-align: left; width: 100%; }
+  button.row:hover { border-color: var(--teacher); }
+  .avatar { flex: none; width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; font-size: 25px; font-weight: 800; background: var(--brand-soft); color: var(--brand); }
+  .teacher-zone .avatar { background: var(--teacher-soft); color: var(--teacher); }
+  .admin-zone .avatar { background: var(--admin-soft); color: var(--admin); }
+  .info { flex: 1; min-width: 0; }
+  .name { font-size: 23px; font-weight: 800; }
+  .meta { font-size: 17px; color: var(--muted); }
+  .status { flex: none; font-size: 19px; font-weight: 800; padding: 8px 14px; border-radius: 12px; white-space: nowrap; }
+  .s-in { background: var(--in-soft); color: var(--in); }
+  .s-out { background: var(--out-soft); color: var(--out); }
+  .empty { text-align: center; color: var(--muted); padding: 26px 8px; font-size: 20px; grid-column: 1 / -1; }
+
+  .me { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; }
+  .me .avatar { width: 72px; height: 72px; font-size: 32px; }
+  .me h2 { margin: 0; }
+  .now { text-align: center; font-size: 30px; font-weight: 800; padding: 22px 12px; border-radius: 20px; margin-bottom: 18px; }
+  .now small { display: block; font-size: 17px; font-weight: 500; margin-top: 4px; }
+  .toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .big { min-height: 120px; border-radius: 22px; border: 3px solid var(--line); background: var(--field); font-size: 28px; font-weight: 800; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+  .big .em { font-size: 40px; line-height: 1; }
+  .big.in[aria-pressed="true"] { background: var(--in); border-color: var(--in); color: var(--on-color); }
+  .big.out[aria-pressed="true"] { background: var(--out); border-color: var(--out); color: var(--on-color); }
+  .confirm-box { margin-top: 12px; padding: 16px; border-radius: 16px; background: var(--out-soft); }
+  .confirm-box p { margin: 0 0 12px; font-weight: 700; color: var(--out); }
+
+  .pin { letter-spacing: 6px; text-align: center; font-size: 28px; font-weight: 800; }
+
+  .toast {
+    position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%) translateY(140px);
+    background: var(--text); color: var(--bg); padding: 14px 22px; border-radius: 999px; font-size: 19px; font-weight: 700;
+    transition: transform .25s, opacity .25s; z-index: 20; max-width: calc(100% - 32px); opacity: 0; visibility: hidden; text-align: center;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; visibility: visible; }
+  @media (prefers-reduced-motion: reduce) { .toast { transition: none; } }
+
+  footer { text-align: center; color: var(--muted); font-size: 16px; margin-top: 28px; }
+
+  @media (max-width: 640px) {
+    body { font-size: 18px; }
+    h1 { font-size: 32px; }
+    .roles, .filter-grid { grid-template-columns: 1fr; }
+    .role-btn { min-height: 150px; }
+    .list { grid-template-columns: minmax(0, 1fr); }
+    .name { font-size: 21px; }
+    .avatar { width: 50px; height: 50px; font-size: 22px; }
+    .status { font-size: 17px; padding: 6px 12px; }
+    .big { min-height: 110px; font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ① 첫 화면 -->
+  <section id="home" class="screen active home">
+    <div class="logo">🏫</div>
+    <h1>선생님 어디 계세요?</h1>
+    <p class="sub">교무실에 가기 전에, 선생님이 계신지 먼저 확인하세요</p>
+    <span id="modeNote" class="mode-note" hidden></span>
+    <p class="ask">누구로 들어갈까요?</p>
+    <div class="roles">
+      <button class="role-btn student" data-go="student">
+        <div class="icon">🧑‍🎓</div><b>학생</b><span>선생님이 계신지 확인하기</span>
+      </button>
+      <button class="role-btn teacher" data-go="teacher">
+        <div class="icon">🧑‍🏫</div><b>선생님</b><span>비밀번호 입력 후 상태 바꾸기</span>
+      </button>
+    </div>
+    <button class="admin-link" data-go="admin">🛡️ 관리자</button>
+  </section>
+
+  <!-- ② 학생 화면 -->
+  <section id="student" class="screen">
+    <div class="topbar">
+      <button class="back" data-go="home">← 처음으로</button>
+      <span class="role-tag student">🧑‍🎓 학생</span>
+    </div>
+    <div class="panel">
+      <h2>👀 지금 계실까?</h2>
+      <p class="hint">이름으로 찾거나 학년·부서, 과목으로 좁혀 보세요.</p>
+      <label class="field-label" for="q">이름 검색</label>
+      <input id="q" class="input" type="search" placeholder="🔍 선생님 이름" autocomplete="off">
+      <div class="filter-grid">
+        <div><label class="field-label" for="fDept">학년 · 부서</label><select id="fDept" class="select"></select></div>
+        <div><label class="field-label" for="fSubject">과목</label><select id="fSubject" class="select"></select></div>
+      </div>
+      <div class="chips" role="group" aria-label="상태">
+        <button class="chip" data-f="all" aria-pressed="true">전체</button>
+        <button class="chip" data-f="in" aria-pressed="false">🟢 재실</button>
+        <button class="chip" data-f="out" aria-pressed="false">🔴 부재</button>
+      </div>
+      <div class="result-bar">
+        <div id="summary" class="summary"></div>
+        <button id="resetFilter" class="reset">필터 초기화</button>
+      </div>
+      <div id="list" class="list"></div>
+    </div>
+  </section>
+
+  <!-- ③ 선생님 화면 -->
+  <section id="teacher" class="screen teacher-zone">
+    <div class="topbar">
+      <button class="back" data-go="home">← 처음으로</button>
+      <span class="role-tag teacher">🧑‍🏫 선생님</span>
+    </div>
+
+    <div id="gate" class="panel">
+      <h2>🔒 선생님 비밀번호</h2>
+      <p id="gateHint" class="hint">선생님용 비밀번호를 입력해 주세요.</p>
+      <form id="gateForm" class="stack">
+        <input id="pw" class="input pin" type="password" inputmode="numeric" autocomplete="off" placeholder="••••" aria-label="선생님 비밀번호">
+        <button class="btn primary full" type="submit" id="gateBtn">들어가기</button>
+      </form>
+      <div id="gateMsg" class="msg err"></div>
+    </div>
+
+    <div id="pickPanel" class="panel" hidden>
+      <h2>본인을 선택해 주세요</h2>
+      <p class="hint">이름을 누르면 재실·부재를 바꿀 수 있어요. 목록에 없으면 먼저 등록해 주세요.</p>
+      <div id="pendNote" class="warn-box" hidden></div>
+      <label class="field-label" for="tq">이름 검색</label>
+      <input id="tq" class="input" type="search" placeholder="🔍 내 이름" autocomplete="off">
+      <div id="pickList" class="list" style="margin-top:14px"></div>
+      <div class="btn-row" style="margin-top:16px">
+        <button class="btn primary" id="openAdd">＋ 선생님 등록</button>
+        <button class="btn" id="openBulk">여러 명 한번에 등록</button>
+      </div>
+      <button class="btn ghost full" id="lockBtn" style="margin-top:10px">잠그기</button>
+    </div>
+
+    <div id="statusPanel" class="panel" hidden>
+      <div class="me">
+        <div id="meAvatar" class="avatar"></div>
+        <div class="info"><h2 id="meName" class="name"></h2><div id="meMeta" class="meta"></div></div>
+      </div>
+      <div id="now" class="now"></div>
+      <div class="toggle" role="group" aria-label="상태">
+        <button class="big in" data-set="in" aria-pressed="false"><span class="em">🟢</span>재실</button>
+        <button class="big out" data-set="out" aria-pressed="false"><span class="em">🔴</span>부재</button>
+      </div>
+      <button class="btn full" id="backToPick" style="margin-top:16px">다른 선생님 선택</button>
+    </div>
+
+    <div id="addPanel" class="panel" hidden>
+      <h2>＋ 선생님 등록</h2>
+      <p class="hint">등록하면 <b>관리자가 승인한 뒤</b> 학생 화면과 선생님 목록에 나와요. 정보를 고치거나 지우는 건 관리자만 할 수 있어요.</p>
+      <form id="addForm" class="stack">
+        <div><label class="field-label" for="aName">이름</label><input id="aName" class="input" required maxlength="20" placeholder="예: 홍길동"></div>
+        <div>
+          <label class="field-label" for="aDept">학년 · 부서</label>
+          <select id="aDept" class="select" required></select>
+          <input id="aDeptOther" class="input" maxlength="20" placeholder="부서 이름 직접 입력" style="margin-top:8px" hidden>
+        </div>
+        <div>
+          <label class="field-label" for="aSubject">담당 과목</label>
+          <select id="aSubject" class="select" required></select>
+          <input id="aSubjectOther" class="input" maxlength="20" placeholder="과목 이름 직접 입력" style="margin-top:8px" hidden>
+        </div>
+        <div class="btn-row"><button class="btn primary" type="submit" id="addBtn">등록 신청</button><button class="btn" type="button" id="addCancel">취소</button></div>
+      </form>
+      <div id="addMsg" class="msg err"></div>
+    </div>
+
+    <div id="bulkPanel" class="panel" hidden>
+      <h2>여러 명 한번에 등록</h2>
+      <p class="hint">한 줄에 한 분씩 <b>이름, 학년·부서, 과목</b> 순서로 쉼표를 넣어 적어 주세요. 엑셀에서 세 칸을 복사해 붙여도 돼요. 관리자가 승인하면 목록에 나와요.</p>
+      <label class="field-label" for="bulkText">선생님 목록</label>
+      <textarea id="bulkText" class="input" placeholder="홍길동, 1학년부, 수학&#10;성춘향, 교무기획부, 국어"></textarea>
+      <div class="btn-row" style="margin-top:12px"><button class="btn primary" id="bulkSave">등록 신청</button><button class="btn" id="bulkCancel">취소</button></div>
+      <div id="bulkMsg" class="msg"></div>
+    </div>
+  </section>
+
+  <!-- ④ 관리자 화면 -->
+  <section id="admin" class="screen admin-zone">
+    <div class="topbar">
+      <button class="back" data-go="home">← 처음으로</button>
+      <span class="role-tag admin">🛡️ 관리자</span>
+    </div>
+
+    <div id="adminGate" class="panel">
+      <h2>🛡️ 관리자 비밀번호</h2>
+      <p class="hint">관리자 비밀번호를 입력해 주세요.</p>
+      <form id="adminGateForm" class="stack">
+        <input id="apw" class="input pin" type="password" inputmode="numeric" autocomplete="off" placeholder="••••" aria-label="관리자 비밀번호">
+        <button class="btn admin full" type="submit">들어가기</button>
+      </form>
+      <div id="adminGateMsg" class="msg err"></div>
+    </div>
+
+    <div id="adminMain" class="gap" hidden>
+      <div class="panel">
+        <h2>비밀번호</h2>
+        <div id="noTeacherPw" class="warn-box" hidden>⚠️ 선생님 비밀번호가 아직 없어요. 먼저 정해 주세요. 정하기 전에는 선생님 화면에 아무도 들어갈 수 없어요.</div>
+        <div id="defaultAdminPw" class="warn-box" hidden>⚠️ 관리자 비밀번호가 처음 값(1234) 그대로예요.</div>
+        <div class="btn-row">
+          <button class="btn admin" id="openPw">선생님 비밀번호 정하기</button>
+          <button class="btn" id="openAdminPw">관리자 비밀번호 바꾸기</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>승인 대기 <span id="pendBadge" class="badge" hidden></span></h2>
+        <p class="hint">선생님 화면에서 등록한 분들이에요. 실제 선생님이 맞는지 확인하고 승인해 주세요.</p>
+        <div id="pendList" class="list one"></div>
+        <button class="btn admin full" id="approveAll" style="margin-top:12px" hidden>모두 승인</button>
+        <div id="pendMsg" class="msg err"></div>
+      </div>
+
+      <div class="panel">
+        <h2>등록된 선생님 <span id="tCount" class="meta"></span></h2>
+        <p class="hint">잘못 등록된 선생님을 고치거나 지울 수 있어요.</p>
+        <input id="mq" class="input" type="search" placeholder="🔍 이름 검색" autocomplete="off" aria-label="등록된 선생님 검색">
+        <div id="manList" class="list one" style="margin-top:12px"></div>
+        <button class="btn danger full" id="allOut" style="margin-top:16px">모든 선생님을 부재로 바꾸기</button>
+        <div id="allOutConfirm" class="confirm-box" hidden>
+          <p>모든 선생님 상태를 🔴 부재로 바꿀까요? 퇴근 시간 뒤에 쓰면 좋아요.</p>
+          <div class="btn-row"><button class="btn danger solid" id="allOutYes">모두 부재로</button><button class="btn" id="allOutNo">취소</button></div>
+        </div>
+        <div id="adminMsg" class="msg err"></div>
+      </div>
+
+      <button class="btn ghost full" id="adminLock">관리자 화면 잠그기</button>
+    </div>
+
+    <div id="editPanel" class="panel" hidden>
+      <h2>선생님 정보 고치기</h2>
+      <form id="editForm" class="stack">
+        <div><label class="field-label" for="eName">이름</label><input id="eName" class="input" required maxlength="20"></div>
+        <div>
+          <label class="field-label" for="eDept">학년 · 부서</label>
+          <select id="eDept" class="select" required></select>
+          <input id="eDeptOther" class="input" maxlength="20" placeholder="부서 이름 직접 입력" style="margin-top:8px" hidden>
+        </div>
+        <div>
+          <label class="field-label" for="eSubject">담당 과목</label>
+          <select id="eSubject" class="select" required></select>
+          <input id="eSubjectOther" class="input" maxlength="20" placeholder="과목 이름 직접 입력" style="margin-top:8px" hidden>
+        </div>
+        <div class="btn-row"><button class="btn admin" type="submit">저장</button><button class="btn" type="button" id="editCancel">취소</button></div>
+      </form>
+      <button class="btn danger full" id="delBtn" style="margin-top:10px">이 선생님 삭제</button>
+      <div id="delConfirm" class="confirm-box" hidden>
+        <p>정말 삭제할까요? 학생 화면에서도 사라져요.</p>
+        <div class="btn-row"><button class="btn danger solid" id="delYes">삭제</button><button class="btn" id="delNo">취소</button></div>
+      </div>
+      <div id="editMsg" class="msg err"></div>
+    </div>
+
+    <div id="pwPanel" class="panel" hidden>
+      <h2 id="pwTitle">비밀번호 바꾸기</h2>
+      <p id="pwHint" class="hint"></p>
+      <form id="pwForm" class="stack">
+        <input id="npw" class="input pin" type="password" inputmode="numeric" autocomplete="off" placeholder="새 비밀번호" aria-label="새 비밀번호">
+        <input id="npw2" class="input pin" type="password" inputmode="numeric" autocomplete="off" placeholder="한 번 더" aria-label="새 비밀번호 확인">
+        <div class="btn-row"><button class="btn admin" type="submit">저장</button><button class="btn" type="button" id="pwCancel">취소</button></div>
+      </form>
+      <div id="pwMsg" class="msg err"></div>
+    </div>
+  </section>
+
+  <footer>재실·부재는 선생님이 직접 표시한 내용이에요.</footer>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const ko = (a, b) => String(a).localeCompare(String(b), "ko");
+  const LABEL = { in: "🟢 재실", out: "🔴 부재" };
+  const st = t => (t && t.status === "in") ? "in" : "out";
+
+  // ───────── 학년·부서, 과목 목록 ─────────
+  const DEPTS = ["1학년부", "2학년부", "3학년부", "교무기획부", "교육과정부", "학생생활안전부", "진로진학부", "창의인성부", "정보과학부", "방과후부", "행정실", "보건실", "상담실", "도서관"];
+  // 고등학교 교과(군)별 과목 — 2022 개정 교육과정 기준, 선생님 담당 과목 이름으로 정리
+  const SUBJECT_GROUPS = [
+    ["국어", ["국어"]],
+    ["수학", ["수학"]],
+    ["영어", ["영어"]],
+    ["사회", ["통합사회", "한국사", "역사", "세계사", "동아시아사", "지리", "윤리", "일반사회", "경제", "정치", "법과 사회", "사회와 문화"]],
+    ["과학", ["통합과학", "과학탐구실험", "물리학", "화학", "생명과학", "지구과학", "융합과학"]],
+    ["체육", ["체육"]],
+    ["예술", ["음악", "미술", "연극"]],
+    ["기술·가정 / 정보", ["기술·가정", "정보", "인공지능 기초", "데이터 과학"]],
+    ["제2외국어 / 한문", ["한문", "중국어", "일본어", "독일어", "프랑스어", "스페인어", "러시아어", "아랍어", "베트남어"]],
+    ["교양", ["진로와 직업", "철학", "논리와 사고", "심리학", "교육학", "삶과 종교", "보건", "환경", "인간과 경제활동", "논술"]],
+    ["전문교과", ["농업", "공업", "상업", "수산·해운", "가사·실업"]],
+    ["비교과", ["사서", "전문상담", "보건교사", "영양", "특수교육"]],
+  ];
+  const GROUP_OF = {};
+  SUBJECT_GROUPS.forEach(([g, list]) => list.forEach(s => GROUP_OF[s] = g));
+  const groupOf = s => GROUP_OF[s] || "기타";
+  const ALL_SUBJECTS = SUBJECT_GROUPS.flatMap(([, l]) => l);
+
+  function fillPicker(sel, kind) {
+    sel.innerHTML = `<option value="">선택해 주세요</option>` + (kind === "dept"
+      ? DEPTS.map(d => `<option>${d}</option>`).join("")
+      : SUBJECT_GROUPS.map(([g, list]) => `<optgroup label="${esc(g)}">${list.map(s => `<option>${esc(s)}</option>`).join("")}</optgroup>`).join(""))
+      + `<option value="__other">기타 (직접 입력)</option>`;
+  }
+  function setPicker(sel, other, value, known) {
+    if (!value) { sel.value = ""; other.hidden = true; other.value = ""; return; }
+    if (known.includes(value)) { sel.value = value; other.hidden = true; other.value = ""; }
+    else { sel.value = "__other"; other.hidden = false; other.value = value; }
+  }
+  const pickerValue = (sel, other) => sel.value === "__other" ? other.value.trim() : sel.value;
+  [["aDept", "aDeptOther", "dept"], ["aSubject", "aSubjectOther", "subj"], ["eDept", "eDeptOther", "dept"], ["eSubject", "eSubjectOther", "subj"]].forEach(([s, o, k]) => {
+    fillPicker($(s), k);
+    $(s).addEventListener("change", () => { $(o).hidden = $(s).value !== "__other"; if (!$(o).hidden) $(o).focus(); });
+  });
+
+  // ───────── 저장소 ─────────
+  // 공유 링크(Claude 앱)로 열면 모두가 함께 보는 저장소, 파일로 열면 이 컴퓨터에만 저장되는 연습 모드
+  const S = { mode: "loading", teachers: [], settings: {}, loaded: false };
+  let db = null;
+  const LKEY_B = "pigeon-pw-board", LKEY_S = "pigeon-pw-settings";
+  const lsGet = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? d; } catch (e) { return d; } };
+  const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+  const toList = map => Object.entries(map || {}).map(([id, v]) => ({ id, ...v }));
+
+  function startLocal() {
+    S.mode = "local";
+    const load = () => { S.teachers = toList(lsGet(LKEY_B, {})); S.settings = lsGet(LKEY_S, {}); };
+    load(); S.loaded = true;
+    window.addEventListener("storage", () => { load(); renderAll(); });
+    renderAll();
+  }
+  function startShared() {
+    S.mode = "shared";
+    const timer = setTimeout(() => { if (!S.loaded) showLoadError("선생님 목록을 아직 불러오지 못했어요. 잠시 후 다시 확인해 주세요."); }, 10000);
+    db.collection("teachers").onSnapshot(snap => {
+      S.teachers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      if (!snap.metadata.fromCache) { S.loaded = true; clearTimeout(timer); $("modeNote").hidden = true; }
+      renderAll();
+    }, () => { clearTimeout(timer); S.loaded = true; showLoadError("선생님 목록을 불러오지 못했어요."); renderAll(); });
+    db.doc("settings/main").onSnapshot(s => { S.settings = s.exists ? s.data() : {}; renderAll(); }, () => {});
+  }
+  function showLoadError(text) { $("modeNote").textContent = "⚠️ " + text; $("modeNote").hidden = false; }
+
+  const store = {
+    async putTeachers(map) { // { id: {필드...} } — 있으면 고치고, 없으면 새로 만들기
+      if (S.mode === "shared") {
+        for (const [id, v] of Object.entries(map)) {
+          const ref = db.collection("teachers").doc(id);
+          if (S.teachers.some(t => t.id === id)) await ref.update(v); else await ref.set(v);
+        }
+        // 저장소에서 새 목록이 오기 전에도 화면에 바로 보이게
+        const byId = Object.fromEntries(S.teachers.map(t => [t.id, t]));
+        Object.entries(map).forEach(([id, v]) => byId[id] = { ...(byId[id] || { id }), ...v });
+        S.teachers = Object.values(byId); renderAll();
+        return;
+      }
+      const m = lsGet(LKEY_B, {});
+      Object.entries(map).forEach(([id, v]) => m[id] = { ...(m[id] || {}), ...v });
+      lsSet(LKEY_B, m); S.teachers = toList(m); renderAll();
+    },
+    async delTeacher(id) {
+      if (S.mode === "shared") return db.collection("teachers").doc(id).delete();
+      const m = lsGet(LKEY_B, {}); delete m[id]; lsSet(LKEY_B, m); S.teachers = toList(m); renderAll();
+    },
+    async setSettings(patch) {
+      S.settings = { ...S.settings, ...patch };
+      if (S.mode === "shared") return db.doc("settings/main").set(S.settings);
+      lsSet(LKEY_S, S.settings); renderAll();
+    },
+  };
+  const newId = () => "t" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+
+  async function hashPw(pw) {
+    const text = "pigeon:" + pw;
+    try {
+      const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+    } catch (e) { let h = 5381; for (const c of text) h = ((h << 5) + h + c.charCodeAt(0)) >>> 0; return "d" + h.toString(16); }
+  }
+  const DEFAULT_ADMIN_PW = "1234";
+  async function adminHash() { return S.settings.adminHash || await hashPw(DEFAULT_ADMIN_PW); }
+
+  // ───────── 공통 ─────────
+  function ago(ts) {
+    if (!ts) return "기록 없음";
+    const m = Math.floor((Date.now() - ts) / 60000);
+    if (m < 1) return "방금"; if (m < 60) return `${m}분 전`;
+    const h = Math.floor(m / 60); if (h < 24) return `${h}시간 전`;
+    return `${Math.floor(h / 24)}일 전`;
+  }
+  let toastTimer;
+  function toast(msg) { const t = $("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 2000); }
+  function friendlyErr(e) {
+    if (e && e.code === "invalid_argument") return "이 계정은 저장할 권한이 없어요. 앱을 만든 사람에게 공유 권한을 '참여자'로 받아 주세요.";
+    if (e && e.code === "quota_exceeded") return "저장 공간이 가득 찼어요. 관리자에게 알려 주세요.";
+    return "저장하지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.";
+  }
+  // pending: true → 관리자 승인 전 (학생 화면·선생님 목록에 안 보임)
+  const isPending = t => t.pending === true;
+  const sortedAll = () => S.teachers.slice().sort((a, b) => ko(a.name, b.name));
+  const sorted = () => sortedAll().filter(t => !isPending(t));
+
+  // 화면 이동 — 선생님/관리자 화면은 나갔다 오면 무조건 다시 잠겨요
+  let teacherOk = false, adminOk = false, tView = "pick", aView = "main", meId = null, editId = null;
+  function go(name) {
+    teacherOk = false; adminOk = false; tView = "pick"; aView = "main"; meId = null; editId = null;
+    ["pw", "apw", "npw", "npw2"].forEach(id => $(id).value = "");
+    ["gateMsg", "adminGateMsg"].forEach(id => $(id).textContent = "");
+    document.querySelectorAll(".screen").forEach(s => s.classList.toggle("active", s.id === name));
+    renderAll(); window.scrollTo(0, 0);
+  }
+  document.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => go(b.dataset.go)));
+  function renderAll() { renderStudent(); renderTeacher(); renderAdmin(); }
+
+  // ───────── 학생 화면 ─────────
+  let statusF = "all";
+  function deptSort(a, b) {
+    const ia = DEPTS.indexOf(a), ib = DEPTS.indexOf(b);
+    if (ia >= 0 && ib >= 0) return ia - ib; if (ia >= 0) return -1; if (ib >= 0) return 1;
+    return ko(a, b);
+  }
+  function renderStudent() {
+    const T = sorted();
+    const ds = $("fDept"), dCur = ds.value;
+    const depts = [...new Set(T.map(t => t.dept).filter(Boolean))].sort(deptSort);
+    ds.innerHTML = `<option value="">전체 학년·부서</option>` + depts.map(d => `<option value="${esc(d)}">${esc(d)}</option>`).join("");
+    ds.value = depts.includes(dCur) ? dCur : "";
+    const ss = $("fSubject"), sCur = ss.value;
+    const groups = {};
+    [...new Set(T.map(t => t.subject).filter(Boolean))].forEach(s => (groups[groupOf(s)] ||= []).push(s));
+    let opts = `<option value="">전체 과목</option>`; const vals = [""];
+    SUBJECT_GROUPS.map(([g]) => g).concat(["기타"]).filter(g => groups[g]).forEach(g => {
+      const list = groups[g].sort((a, b) => ALL_SUBJECTS.indexOf(a) - ALL_SUBJECTS.indexOf(b) || ko(a, b));
+      opts += `<optgroup label="${esc(g)}">`;
+      if (list.length > 1) { opts += `<option value="g:${esc(g)}">${esc(g)} 전체</option>`; vals.push("g:" + g); }
+      list.forEach(s => { opts += `<option value="s:${esc(s)}">${esc(s)}</option>`; vals.push("s:" + s); });
+      opts += `</optgroup>`;
+    });
+    ss.innerHTML = opts; ss.value = vals.includes(sCur) ? sCur : "";
+
+    const q = $("q").value.trim(), d = ds.value, s = ss.value;
+    const subjOk = t => !s || (s.startsWith("g:") ? groupOf(t.subject) === s.slice(2) : t.subject === s.slice(2));
+    const shown = T.filter(t => (statusF === "all" || st(t) === statusF) && (!d || t.dept === d) && subjOk(t) && (!q || t.name.includes(q)));
+    const inCount = T.filter(t => st(t) === "in").length;
+    const filtered = !!(q || d || s || statusF !== "all");
+    $("resetFilter").hidden = !filtered;
+    $("summary").innerHTML = T.length ? `선생님 ${T.length}분 중 <b>${inCount}분</b>이 계세요` + (filtered ? ` · 조건에 맞는 ${shown.length}분` : "") : "";
+    $("list").innerHTML =
+      !T.length ? `<div class="empty">${S.loaded ? "아직 등록된 선생님이 없어요." : "선생님 목록을 불러오고 있어요…"}</div>`
+      : !shown.length ? `<div class="empty">조건에 맞는 선생님이 없어요 🥲<br>필터를 바꿔 보세요.</div>`
+      : shown.map(t => `
+        <div class="row">
+          <div class="avatar">${esc(t.name[0])}</div>
+          <div class="info"><div class="name">${esc(t.name)} 선생님</div><div class="meta">${esc(t.dept)} · ${esc(t.subject)} · ${ago(t.updated)}</div></div>
+          <div class="status s-${st(t)}">${LABEL[st(t)]}</div>
+        </div>`).join("");
+  }
+  $("q").addEventListener("input", renderStudent);
+  $("fDept").addEventListener("change", renderStudent);
+  $("fSubject").addEventListener("change", renderStudent);
+  document.querySelectorAll(".chip").forEach(c => c.addEventListener("click", () => {
+    statusF = c.dataset.f;
+    document.querySelectorAll(".chip").forEach(x => x.setAttribute("aria-pressed", String(x === c)));
+    renderStudent();
+  }));
+  $("resetFilter").addEventListener("click", () => {
+    $("q").value = ""; $("fDept").value = ""; $("fSubject").value = ""; statusF = "all";
+    document.querySelectorAll(".chip").forEach(x => x.setAttribute("aria-pressed", String(x.dataset.f === "all")));
+    renderStudent();
+  });
+
+  // ───────── 선생님 화면 ─────────
+  const T_PANELS = { pick: "pickPanel", status: "statusPanel", add: "addPanel", bulk: "bulkPanel" };
+  function showT(v) { tView = v; renderTeacher(); window.scrollTo(0, 0); }
+  function renderTeacher() {
+    if (!$("teacher").classList.contains("active")) return;
+    const hasPw = !!S.settings.pwHash;
+    $("gate").hidden = teacherOk;
+    Object.values(T_PANELS).forEach(p => $(p).hidden = true);
+    if (!teacherOk) {
+      $("pw").disabled = $("gateBtn").disabled = !hasPw;
+      $("gateHint").textContent = !S.loaded ? "불러오는 중이에요…" : hasPw ? "선생님용 비밀번호를 입력해 주세요." : "아직 선생님 비밀번호가 없어요. 관리자 화면에서 먼저 정해 주세요.";
+      return;
+    }
+    if (tView === "status" && !S.teachers.find(t => t.id === meId && !isPending(t))) tView = "pick";
+    $(T_PANELS[tView]).hidden = false;
+    if (tView === "pick") renderPick();
+    if (tView === "status") renderMe();
+  }
+  $("gateForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const h = await hashPw($("pw").value.trim()); $("pw").value = "";
+    if (h !== S.settings.pwHash) { $("gateMsg").textContent = "비밀번호가 맞지 않아요."; $("pw").focus(); return; }
+    $("gateMsg").textContent = ""; teacherOk = true; showT("pick");
+  });
+  $("lockBtn").addEventListener("click", () => { teacherOk = false; tView = "pick"; renderTeacher(); toast("🔒 잠갔어요"); window.scrollTo(0, 0); });
+
+  function renderPick() {
+    const pend = S.teachers.filter(isPending).length;
+    $("pendNote").hidden = !pend;
+    $("pendNote").textContent = `⏳ 관리자 승인을 기다리는 선생님이 ${pend}분 있어요.`;
+    const q = $("tq").value.trim();
+    const T = sorted().filter(t => !q || t.name.includes(q));
+    $("pickList").innerHTML = T.length ? T.map(t => `
+      <button class="row" data-id="${esc(t.id)}">
+        <div class="avatar">${esc(t.name[0])}</div>
+        <div class="info"><div class="name">${esc(t.name)} 선생님</div><div class="meta">${esc(t.dept)} · ${esc(t.subject)}</div></div>
+        <div class="status s-${st(t)}">${LABEL[st(t)]}</div>
+      </button>`).join("")
+      : `<div class="empty">${sorted().length ? "찾는 이름이 없어요." : "아직 승인된 선생님이 없어요.<br>아래 ‘선생님 등록’을 눌러 주세요."}</div>`;
+  }
+  $("tq").addEventListener("input", renderPick);
+  $("pickList").addEventListener("click", e => { const b = e.target.closest("[data-id]"); if (b) { meId = b.dataset.id; showT("status"); } });
+
+  function renderMe() {
+    const me = S.teachers.find(t => t.id === meId);
+    $("meAvatar").textContent = me.name[0];
+    $("meName").textContent = `${me.name} 선생님`;
+    $("meMeta").textContent = `${me.dept} · ${me.subject}`;
+    const s = st(me);
+    $("now").className = `now s-${s}`;
+    $("now").innerHTML = `학생들에게 지금 <u>${s === "in" ? "재실" : "부재"}</u>로 보여요<small>마지막 변경: ${ago(me.updated)}</small>`;
+    document.querySelectorAll(".big").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.set === s)));
+  }
+  let busy = false;
+  document.querySelectorAll(".big").forEach(b => b.addEventListener("click", async () => {
+    const me = S.teachers.find(t => t.id === meId);
+    if (!me || busy || st(me) === b.dataset.set) return;
+    busy = true;
+    try { await store.putTeachers({ [me.id]: { status: b.dataset.set, updated: Date.now() } }); toast(b.dataset.set === "in" ? "🟢 재실로 바꿨어요" : "🔴 부재로 바꿨어요"); }
+    catch (err) { toast("⚠️ " + friendlyErr(err)); }
+    busy = false;
+  }));
+  $("backToPick").addEventListener("click", () => { meId = null; showT("pick"); });
+
+  // 한 명 등록
+  $("openAdd").addEventListener("click", () => {
+    $("aName").value = ""; setPicker($("aDept"), $("aDeptOther"), "", DEPTS); setPicker($("aSubject"), $("aSubjectOther"), "", ALL_SUBJECTS);
+    $("addMsg").textContent = ""; showT("add"); $("aName").focus();
+  });
+  $("addCancel").addEventListener("click", () => showT("pick"));
+  $("addForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const name = $("aName").value.trim(), dept = pickerValue($("aDept"), $("aDeptOther")), subject = pickerValue($("aSubject"), $("aSubjectOther"));
+    if (!name || !dept || !subject) { $("addMsg").textContent = "세 칸을 모두 채워 주세요."; return; }
+    if (S.teachers.some(t => t.name === name && t.subject === subject)) { $("addMsg").textContent = "이미 같은 이름·과목의 선생님이 있어요."; return; }
+    $("addBtn").disabled = true;
+    const id = newId();
+    try { await store.putTeachers({ [id]: { name, dept, subject, status: "out", updated: Date.now(), pending: true } }); toast("📨 등록 신청했어요. 관리자가 승인하면 목록에 나와요"); showT("pick"); }
+    catch (err) { $("addMsg").textContent = friendlyErr(err); }
+    $("addBtn").disabled = false;
+  });
+
+  // 여러 명 등록 — 한 번에 저장 (쓰기 1번)
+  $("openBulk").addEventListener("click", () => { $("bulkMsg").textContent = ""; $("bulkMsg").className = "msg"; showT("bulk"); $("bulkText").focus(); });
+  $("bulkCancel").addEventListener("click", () => showT("pick"));
+  $("bulkSave").addEventListener("click", async () => {
+    const lines = $("bulkText").value.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    const map = {}, bad = []; let skip = 0, n = 0;
+    const seen = new Set(S.teachers.map(t => t.name + "|" + t.subject));
+    lines.forEach((l, i) => {
+      const p = l.split(/\t|,/).map(x => x.trim());
+      if (!(p.length >= 3 && p[0] && p[1] && p[2])) { bad.push(i + 1); return; }
+      const key = p[0] + "|" + p[2];
+      if (seen.has(key)) { skip++; return; }
+      seen.add(key);
+      map[newId() + i] = { name: p[0], dept: p[1], subject: p[2], status: "out", updated: Date.now(), pending: true }; n++;
+    });
+    const msg = $("bulkMsg");
+    if (!n) { msg.className = "msg err"; msg.textContent = !lines.length || bad.length === lines.length ? "등록할 줄이 없어요. ‘이름, 학년·부서, 과목’ 순서로 적어 주세요." : "새로 등록할 선생님이 없어요. 모두 이미 있어요."; return; }
+    $("bulkSave").disabled = true;
+    try {
+      await store.putTeachers(map);
+      msg.className = "msg ok";
+      msg.textContent = `📨 ${n}분 등록 신청했어요. 관리자가 승인하면 목록에 나와요` + (skip ? ` · 이미 있는 ${skip}분은 건너뛰었어요` : "") + (bad.length ? ` · 형식이 맞지 않은 줄: ${bad.join(", ")}번째` : "");
+      if (!bad.length) $("bulkText").value = "";
+    } catch (err) { msg.className = "msg err"; msg.textContent = friendlyErr(err); }
+    $("bulkSave").disabled = false;
+  });
+
+  // ───────── 관리자 화면 ─────────
+  function showA(v) { aView = v; renderAdmin(); window.scrollTo(0, 0); }
+  function renderAdmin() {
+    if (!$("admin").classList.contains("active")) return;
+    $("adminGate").hidden = adminOk;
+    ["adminMain", "editPanel", "pwPanel"].forEach(p => $(p).hidden = true);
+    if (!adminOk) return;
+    if (aView === "edit" && !S.teachers.find(t => t.id === editId)) aView = "main";
+    $({ main: "adminMain", edit: "editPanel", pw: "pwPanel", adminPw: "pwPanel" }[aView]).hidden = false;
+    if (aView !== "main") return;
+    $("noTeacherPw").hidden = !!S.settings.pwHash;
+    $("openPw").textContent = S.settings.pwHash ? "선생님 비밀번호 바꾸기" : "선생님 비밀번호 정하기";
+    $("defaultAdminPw").hidden = !!S.settings.adminHash;
+    const pend = sortedAll().filter(isPending);
+    $("pendBadge").hidden = !pend.length; $("pendBadge").textContent = pend.length;
+    $("approveAll").hidden = pend.length < 2;
+    $("pendList").innerHTML = pend.length ? pend.map(t => `
+      <div class="row" style="flex-wrap:wrap">
+        <div class="avatar">${esc(t.name[0])}</div>
+        <div class="info"><div class="name">${esc(t.name)}</div><div class="meta">${esc(t.dept)} · ${esc(t.subject)} · ${ago(t.updated)} 신청</div></div>
+        <span class="status s-wait">승인 대기</span>
+        <div style="display:flex;gap:8px;width:100%">
+          <button class="btn admin" data-approve="${esc(t.id)}" style="flex:1;min-height:52px;font-size:18px">✅ 승인</button>
+          <button class="btn danger" data-reject="${esc(t.id)}" style="flex:1;min-height:52px;font-size:18px">거절</button>
+        </div>
+      </div>`).join("") : `<div class="empty">승인을 기다리는 선생님이 없어요.</div>`;
+    $("tCount").textContent = `(${sorted().length}분)`;
+    const q = $("mq").value.trim();
+    const T = sorted().filter(t => !q || t.name.includes(q));
+    $("manList").innerHTML = T.length ? T.map(t => `
+      <div class="row">
+        <div class="avatar">${esc(t.name[0])}</div>
+        <div class="info"><div class="name">${esc(t.name)}</div><div class="meta">${esc(t.dept)} · ${esc(t.subject)} · ${LABEL[st(t)]}</div></div>
+        <button class="btn" data-edit="${esc(t.id)}" style="flex:none;min-height:52px;font-size:18px">고치기</button>
+      </div>`).join("") : `<div class="empty">${sorted().length ? "찾는 이름이 없어요." : "아직 승인된 선생님이 없어요."}</div>`;
+  }
+  $("adminGateForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const h = await hashPw($("apw").value.trim()); $("apw").value = "";
+    if (h !== await adminHash()) { $("adminGateMsg").textContent = "관리자 비밀번호가 맞지 않아요."; $("apw").focus(); return; }
+    $("adminGateMsg").textContent = ""; adminOk = true; showA("main");
+  });
+  $("adminLock").addEventListener("click", () => { adminOk = false; aView = "main"; renderAdmin(); toast("🔒 잠갔어요"); window.scrollTo(0, 0); });
+  $("mq").addEventListener("input", renderAdmin);
+
+  $("manList").addEventListener("click", e => {
+    const b = e.target.closest("[data-edit]"); if (!b) return;
+    const t = S.teachers.find(x => x.id === b.dataset.edit); if (!t) return;
+    editId = t.id;
+    $("eName").value = t.name;
+    setPicker($("eDept"), $("eDeptOther"), t.dept, DEPTS);
+    setPicker($("eSubject"), $("eSubjectOther"), t.subject, ALL_SUBJECTS);
+    $("delConfirm").hidden = true; $("editMsg").textContent = "";
+    showA("edit");
+  });
+  $("editCancel").addEventListener("click", () => showA("main"));
+  $("editForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const name = $("eName").value.trim(), dept = pickerValue($("eDept"), $("eDeptOther")), subject = pickerValue($("eSubject"), $("eSubjectOther"));
+    if (!name || !dept || !subject) { $("editMsg").textContent = "빈칸을 모두 채워 주세요."; return; }
+    try { await store.putTeachers({ [editId]: { name, dept, subject } }); toast("✏️ 고쳤어요"); showA("main"); }
+    catch (err) { $("editMsg").textContent = friendlyErr(err); }
+  });
+  $("delBtn").addEventListener("click", () => { $("delConfirm").hidden = false; });
+  $("delNo").addEventListener("click", () => { $("delConfirm").hidden = true; });
+  $("delYes").addEventListener("click", async () => {
+    try { await store.delTeacher(editId); toast("🗑️ 삭제했어요"); showA("main"); }
+    catch (err) { $("editMsg").textContent = friendlyErr(err); }
+  });
+
+  $("pendList").addEventListener("click", async e => {
+    const a = e.target.closest("[data-approve]"), r = e.target.closest("[data-reject]");
+    if (!a && !r) return;
+    const id = (a || r).dataset.approve || (a || r).dataset.reject;
+    const t = S.teachers.find(x => x.id === id); if (!t) return;
+    (a || r).disabled = true; $("pendMsg").textContent = "";
+    try {
+      if (a) { await store.putTeachers({ [id]: { pending: false } }); toast(`✅ ${t.name} 선생님을 승인했어요`); }
+      else { await store.delTeacher(id); toast(`${t.name} 선생님 등록을 거절했어요`); }
+    } catch (err) { $("pendMsg").textContent = friendlyErr(err); (a || r).disabled = false; }
+  });
+  $("approveAll").addEventListener("click", async () => {
+    const map = {}; S.teachers.filter(isPending).forEach(t => map[t.id] = { pending: false });
+    try { await store.putTeachers(map); toast(`✅ ${Object.keys(map).length}분을 모두 승인했어요`); } catch (err) { $("pendMsg").textContent = friendlyErr(err); }
+  });
+  $("allOut").addEventListener("click", () => { $("allOutConfirm").hidden = false; });
+  $("allOutNo").addEventListener("click", () => { $("allOutConfirm").hidden = true; });
+  $("allOutYes").addEventListener("click", async () => {
+    const map = {}; const now = Date.now();
+    S.teachers.filter(t => st(t) === "in").forEach(t => map[t.id] = { status: "out", updated: now });
+    $("allOutConfirm").hidden = true;
+    if (!Object.keys(map).length) { toast("이미 모두 부재예요"); return; }
+    try { await store.putTeachers(map); toast("🔴 모두 부재로 바꿨어요"); } catch (err) { $("adminMsg").textContent = friendlyErr(err); }
+  });
+
+  function openPwForm(kind) {
+    $("npw").value = ""; $("npw2").value = ""; $("pwMsg").textContent = "";
+    $("pwTitle").textContent = kind === "adminPw" ? "관리자 비밀번호 바꾸기" : (S.settings.pwHash ? "선생님 비밀번호 바꾸기" : "선생님 비밀번호 정하기");
+    $("pwHint").textContent = kind === "adminPw"
+      ? "4자리 이상으로 정해 주세요. 관리자만 알고 있어야 해요."
+      : "4자리 이상으로 정해 주세요. 정한 뒤 선생님들께 알려 주세요.";
+    showA(kind); $("npw").focus();
+  }
+  $("openPw").addEventListener("click", () => openPwForm("pw"));
+  $("openAdminPw").addEventListener("click", () => openPwForm("adminPw"));
+  $("pwCancel").addEventListener("click", () => showA("main"));
+  $("pwForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const a = $("npw").value.trim(), b = $("npw2").value.trim();
+    if (a.length < 4) { $("pwMsg").textContent = "4자리 이상으로 정해 주세요."; return; }
+    if (a !== b) { $("pwMsg").textContent = "두 번 입력한 비밀번호가 달라요."; return; }
+    const h = await hashPw(a), isAdmin = aView === "adminPw";
+    if (isAdmin && h === S.settings.pwHash) { $("pwMsg").textContent = "선생님 비밀번호와 다르게 정해 주세요."; return; }
+    if (!isAdmin && h === await adminHash()) { $("pwMsg").textContent = "관리자 비밀번호와 다르게 정해 주세요."; return; }
+    try {
+      await store.setSettings(isAdmin ? { adminHash: h } : { pwHash: h });
+      toast(isAdmin ? "🛡️ 관리자 비밀번호를 바꿨어요" : "🔑 선생님 비밀번호를 저장했어요"); showA("main");
+    } catch (err) { $("pwMsg").textContent = friendlyErr(err); }
+  });
+
+  // ───────── 시작 ─────────
+  renderAll();
+  if (window.claude && typeof window.claude.use === "function") {
+    window.claude.use("db").then(d => { if (d) { db = d; startShared(); } else startLocal(); }).catch(startLocal);
+  } else startLocal();
+  setInterval(() => { if (!document.hidden) { renderStudent(); if (tView === "status") renderMe(); } }, 60000);
+})();
+</script>
+
+</body>
+</html>
